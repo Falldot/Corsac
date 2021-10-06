@@ -1,6 +1,15 @@
 {
     "C_Cpp.errorSquiggles": "Disabled",
     "files.associations": {
-        "stdio.h": "c"
+        "stdio.h": "c",
+        "panic.h": "c",
+        "malloc.h": "c",
+        "slice2.h": "c",
+        "stdlib.h": "c",
+        "assert.h": "c",
+        "slice.h": "c",
+        "sparce_set.h": "c",
+        "sparse_set.h": "c",
+        "stddef.h": "c"
     }
 }
