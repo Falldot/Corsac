@@ -10,6 +10,13 @@
         "slice.h": "c",
         "sparce_set.h": "c",
         "sparse_set.h": "c",
-        "stddef.h": "c"
+        "stddef.h": "c",
+        "types.h": "c",
+        "string.h": "c",
+        "sdl.h": "c",
+        "gl.h": "c",
+        "cstdlib": "c",
+        "app.h": "c",
+        "type_traits": "c"
     }
 }

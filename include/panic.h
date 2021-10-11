@@ -9,7 +9,7 @@
 /***** METHODS *****/
 
 #define corsac_panic(M, ...) \
-    {                                                                                   \
+    {                                                                                       \
         fprintf(stderr, "\n[ERROR] (%s:%d) " M "\n\n", __FILE__, __LINE__, ##__VA_ARGS__);  \
-        exit(1);                                                                        \
+        exit(1);                                                                            \
     }

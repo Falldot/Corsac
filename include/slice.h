@@ -3,65 +3,89 @@
 // MIT License web page: https://opensource.org/licenses/MIT
 #pragma once
 
-// malloc, realloc, free
-#include <malloc.h>
+// memcpy
+#include <string.h>
 
-#include "panic.h"
+// panic
+#include "memory.h"
 
-/***** PUBLIC *****/
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-#define corsac_slice(type)                                                      \
-	({                                                                          \
-        type * slice = NULL;                                                    \
-		const size_t slc_size = 4 * sizeof(*slice) + (sizeof(size_t) * 2);      \
-        size_t* meta = malloc(slc_size);                                        \
-        if (meta == NULL) corsac_panic("Falled memory allocate!");              \
-        slice = (void*)&meta[2];                                                \
-        _corsac_slice_set_capacity(slice, 4);                                   \
-        _corsac_slice_set_size(slice, 0);                                       \
-        slice;                                                                  \
-    })
+#define CORSAC_SLICE_DEFAULT_CAPACITY 4
 
-#define corsac_slice_capacity(slice) ((size_t *)(slice))[-1]
+#define corsac_slice(T) \
+    ((T*)_corsac_slice(sizeof(T), CORSAC_SLICE_DEFAULT_CAPACITY))
 
-#define corsac_slice_size(slice) ((size_t *)(slice))[-2]
+#define corsac_slice_make(T, length) \
+    ((T*)_corsac_slice(sizeof(T), length))
 
-#define corsac_slice_pop(slice) \
-	({                                                          \
-        _corsac_slice_set_size(slice, corsac_slice_size(slice) - 1);   \
-        slice[corsac_slice_size(slice)];                        \
-    })
+void* _corsac_slice(
+    size_t size,
+    size_t length);
 
-#define corsac_slice_push(slice, value) \
-	{                                                       \
-        size_t cap = corsac_slice_capacity(slice);          \
-        size_t size = corsac_slice_size(slice);             \
-        if (cap <= size) _corsac_slice_grow(slice, cap * 2);\
-        slice[size] = value;                                \
-        _corsac_slice_set_size(slice, size + 1);            \
-    }
+#define corsac_slice_create(T, array) \
+    ((T*)_corsac_slice_create(sizeof(T), sizeof(array), array))
+
+#define corsac_slice_args(T, ...) \
+    ({T arr[] = {__VA_ARGS__}; (T*)corsac_slice_create(T, arr);})
+
+void* _corsac_slice_create(
+    size_t el_size,
+    size_t arr_size,
+    void* array);
+
+#define corsac_slice_get(slice, T, index) \
+    ((T*)_corsac_slice_get(slice, sizeof(T), index))
+
+void* _corsac_slice_get(
+    void* slice,
+    size_t el_size,
+    size_t index);
+
+#define corsac_slice_push(slice, T, ...) \
+	(*((T*)_corsac_slice_push(slice, sizeof(T))) = ((T)__VA_ARGS__))
+
+void* _corsac_slice_push(
+    void* slice,
+    size_t el_size);
+
+#define corsac_slice_pop(slice, T) \
+    ((T*)_corsac_slice_pop(slice, sizeof(T)))
+
+void* _corsac_slice_pop(
+    void* slice,
+    size_t el_size);
+
+#define corsac_slice_shrink(slice) \
+    (_corsac_slice_reserve(slice, corsac_slice_size(slice)))
+
+void _corsac_slice_reserve(
+    void* slice,
+    size_t length);
+
+#define corsac_slice_at(slice, size_step) \
+    (void*)(((size_t)(slice)) + ((size_t)(size_step)))
+
+#define corsac_slice_clear(slice) \
+    _corsac_slice_set_size(slice, 0)
 
 #define corsac_slice_free(slice) \
-	{                                               \
-        size_t *data = &((size_t *)(slice))[-2];    \
-        free(data);                                 \
-	}
+    (free(&((size_t*)(slice))[-2]))
 
-/***** PRIVATE *****/
+#define corsac_slice_capacity(slice) \
+    ((size_t*)(slice))[-1]
+
+#define corsac_slice_size(slice) \
+    ((size_t*)(slice))[-2]
 
 #define _corsac_slice_set_capacity(slice, size) \
-		if (slice) ((size_t *)(slice))[-1] = (size);
+    ((size_t*)(slice))[-1] = size
 
 #define _corsac_slice_set_size(slice, size) \
-		if (slice) ((size_t *)(slice))[-2] = (size);
+    ((size_t*)(slice))[-2] = size
 
-
-#define _corsac_slice_grow(slice, size) \
-	{                                                                           \
-        const size_t slc_size = size * sizeof(*slice) + (sizeof(size_t) * 2);   \
-        size_t* meta = &((size_t *)slice)[-2];                                  \
-        size_t* data = realloc(meta, slc_size);                                 \
-        if (data == NULL) corsac_panic("Falled memory reallocate!");            \
-        slice = (void*)&data[2];                                                \
-        _corsac_slice_set_capacity(slice, size);                                \
-    }
+#ifdef __cplusplus
+}
+#endif
